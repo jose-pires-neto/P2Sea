@@ -353,7 +353,7 @@
     </div>
 
     <script>
-        const API_URL = "http://localhost:8000";
+        const API_URL = process.env.API_URL || "http://localhost:8000";
         let currentUser = null;
         let currentPage = 1;
         const postsPerPage = 10;

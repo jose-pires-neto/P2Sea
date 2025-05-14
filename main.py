@@ -103,10 +103,10 @@ init_db()
 # Iniciar aplicação FastAPI
 app = FastAPI()
 
-# Configurar CORS
+# No seu main.py, atualize o CORS para:
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://p2sea.vercel.app", "http://localhost:8000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
