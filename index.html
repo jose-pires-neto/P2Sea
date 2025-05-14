@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UFRA+</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#E6F1FF',
+                            100: '#CCE3FF',
+                            200: '#99C8FF',
+                            300: '#66ADFF',
+                            400: '#3392FF',
+                            500: '#0077FF',
+                            600: '#005FCC',
+                            700: '#004799',
+                            800: '#003066',
+                            900: '#001833',
+                        },
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        .modal-transition {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        
+        .post-transition {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .post-transition:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .like-animation {
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .like-animation:active {
+            transform: scale(1.5);
+        }
+        
+        .dark-overlay {
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Modal de login/cadastro -->
+    <div id="authModal" class="fixed inset-0 dark-overlay flex items-center justify-center z-50 modal-transition">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md modal-transition transform">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-primary-600">UFRA+</h2>
+                <p class="text-gray-500 mt-2">Conectando pessoas, construindo comunidades</p>
+            </div>
+            
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2 text-sm">Nome de usuário</label>
+                    <input id="loginUsername" type="text" 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 outline-none"
+                           placeholder="Seu nome de usuário">
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2 text-sm">Senha</label>
+                    <input id="loginPassword" type="password" 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 outline-none"
+                           placeholder="Sua senha">
+                </div>
+                
+                <div class="flex flex-col space-y-3 mt-6">
+                    <button onclick="login()" 
+                            class="w-full bg-primary-500 text-white py-3 rounded-lg font-medium hover:bg-primary-600 transition-colors duration-200 flex items-center justify-center">
+                        <i class="fas fa-sign-in-alt mr-2"></i>
+                        Entrar
+                    </button>
+                    <button onclick="register()" 
+                            class="w-full bg-white border border-primary-500 text-primary-500 py-3 rounded-lg font-medium hover:bg-primary-50 transition-colors duration-200 flex items-center justify-center">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        Criar conta
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Layout principal -->
+    <div class="flex h-screen">
+        <!-- Barra lateral esquerda - navegação principal -->
+        <aside class="w-20 md:w-64 bg-white border-r border-gray-200 fixed h-full overflow-y-auto z-20 transition-all duration-300 ease-in-out">
+            <div class="h-16 flex items-center justify-center md:justify-start px-4 border-b border-gray-200">
+                <span class="text-2xl font-bold text-primary-600 hidden md:block">UFRA+</span>
+                <span class="text-2xl font-bold text-primary-600 md:hidden">U+</span>
+            </div>
+            
+            <div class="p-4">
+                <nav class="space-y-2">
+                    <a href="#" class="flex items-center space-x-3 p-3 rounded-xl hover:bg-primary-50 text-gray-700 hover:text-primary-600 transition-colors duration-200 group">
+                        <i class="fas fa-home text-xl group-hover:text-primary-500"></i>
+                        <span class="font-medium hidden md:block">Início</span>
+                    </a>
+                    <a href="#" class="flex items-center space-x-3 p-3 rounded-xl hover:bg-primary-50 text-gray-700 hover:text-primary-600 transition-colors duration-200 group">
+                        <i class="fas fa-compass text-xl group-hover:text-primary-500"></i>
+                        <span class="font-medium hidden md:block">Explorar</span>
+                    </a>
+                    <a href="#" class="flex items-center space-x-3 p-3 rounded-xl hover:bg-primary-50 text-gray-700 hover:text-primary-600 transition-colors duration-200 group">
+                        <i class="fas fa-bell text-xl group-hover:text-primary-500"></i>
+                        <span class="font-medium hidden md:block">Notificações</span>
+                    </a>
+                    <a href="#" class="flex items-center space-x-3 p-3 rounded-xl hover:bg-primary-50 text-gray-700 hover:text-primary-600 transition-colors duration-200 group">
+                        <i class="fas fa-envelope text-xl group-hover:text-primary-500"></i>
+                        <span class="font-medium hidden md:block">Mensagens</span>
+                    </a>
+                    <a href="#" class="flex items-center space-x-3 p-3 rounded-xl hover:bg-primary-50 text-gray-700 hover:text-primary-600 transition-colors duration-200 group">
+                        <i class="fas fa-bookmark text-xl group-hover:text-primary-500"></i>
+                        <span class="font-medium hidden md:block">Salvos</span>
+                    </a>
+                    <a href="#" class="flex items-center space-x-3 p-3 rounded-xl hover:bg-primary-50 text-gray-700 hover:text-primary-600 transition-colors duration-200 group">
+                        <i class="fas fa-user text-xl group-hover:text-primary-500"></i>
+                        <span class="font-medium hidden md:block">Perfil</span>
+                    </a>
+                    <a href="#" class="flex items-center space-x-3 p-3 rounded-xl hover:bg-primary-50 text-gray-700 hover:text-primary-600 transition-colors duration-200 group">
+                        <i class="fas fa-cog text-xl group-hover:text-primary-500"></i>
+                        <span class="font-medium hidden md:block">Configurações</span>
+                    </a>
+                </nav>
+                
+                <div class="mt-8 hidden md:block">
+                    <!-- Status da rede -->
+                    <div class="bg-gray-50 p-4 rounded-xl">
+                        <h3 class="font-medium mb-2 text-gray-800 flex items-center">
+                            <i class="fas fa-network-wired mr-2 text-primary-500"></i>
+                            Status da Rede
+                        </h3>
+                        <div id="networkStatus" class="text-sm">
+                            <div class="flex items-center mb-1">
+                                <div class="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse-slow"></div>
+                                <p class="text-gray-600">Servidores online: <span id="serversCount" class="font-medium text-gray-800">1</span></p>
+                            </div>
+                            <p class="text-gray-600">Status: <span class="text-green-500 font-medium">Operacional</span></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Botão publicar para telas maiores -->
+                    <button onclick="openPostModal()" class="w-full mt-4 bg-primary-500 text-white py-3 px-4 rounded-xl font-medium hover:bg-primary-600 transition-colors duration-200 flex items-center justify-center">
+                        <i class="fas fa-pen mr-2"></i>
+                        Publicar
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Usuário logado no rodapé da sidebar -->
+            <div class="absolute bottom-0 w-full p-4 border-t border-gray-200 bg-white">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold" id="userAvatar"></div>
+                    <div class="ml-3 hidden md:block overflow-hidden">
+                        <div class="font-medium text-gray-800 truncate" id="currentUser"></div>
+                        <button onclick="logout()" class="text-sm text-red-500 hover:text-red-600 transition-colors duration-200">
+                            Sair
+                        </button>
+                    </div>
+                    <button onclick="logout()" class="ml-auto md:hidden text-red-500">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Feed principal -->
+        <main class="flex-1 ml-20 md:ml-64 min-h-screen">
+            <!-- Cabeçalho -->
+            <header class="h-16 bg-white border-b border-gray-200 flex items-center px-6 sticky top-0 z-10">
+                <h1 class="text-xl font-bold text-gray-800">Início</h1>
+                
+                <div class="ml-auto relative">
+                    <div class="flex items-center space-x-2">
+                        <button class="p-2 rounded-full hover:bg-gray-100 text-gray-700 transition-colors duration-200">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        <button class="md:hidden p-2 rounded-full hover:bg-gray-100 text-gray-700 transition-colors duration-200" onclick="openPostModal()">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Conteúdo da timeline -->
+            <div class="max-w-2xl mx-auto py-4 px-4">
+                <!-- Timeline -->
+                <div id="timeline" class="space-y-4"></div>
+                
+                <!-- Botão para carregar mais posts -->
+                <div class="text-center mt-6 mb-16">
+                    <button id="loadMoreButton" onclick="loadMorePosts()" class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-200 py-2 px-4 rounded-lg font-medium">
+                        Carregar mais
+                    </button>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Barra lateral direita - tendências e sugestões (apenas em telas grandes) -->
+        <aside class="hidden lg:block w-80 bg-white border-l border-gray-200 fixed right-0 h-screen overflow-y-auto p-4 scrollbar-hide">
+            <div class="sticky top-0 pt-2">
+                <!-- Busca -->
+                <div class="bg-gray-100 rounded-full flex items-center px-4 py-2 mb-6">
+                    <i class="fas fa-search text-gray-500 mr-2"></i>
+                    <input type="text" placeholder="Buscar" class="bg-transparent border-none focus:outline-none text-gray-700 w-full">
+                </div>
+                
+                <!-- Tendências -->
+                <div class="bg-gray-50 rounded-xl p-4 mb-6">
+                    <h2 class="font-bold text-xl mb-4">Tendências</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-xs text-gray-500">Tecnologia</p>
+                            <p class="font-medium">#UFRAPlus</p>
+                            <p class="text-xs text-gray-500">2.5k posts</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500">Brasil</p>
+                            <p class="font-medium">#RedeDescentralizada</p>
+                            <p class="text-xs text-gray-500">1.2k posts</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500">Tecnologia</p>
+                            <p class="font-medium">#OpenSource</p>
+                            <p class="text-xs text-gray-500">5.7k posts</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quem seguir -->
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <h2 class="font-bold text-xl mb-4">Quem seguir</h2>
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+                                A
+                            </div>
+                            <div class="ml-3">
+                                <p class="font-medium">Admin</p>
+                                <p class="text-xs text-gray-500">@admin</p>
+                            </div>
+                            <button class="ml-auto bg-primary-500 text-white text-sm py-1 px-3 rounded-full hover:bg-primary-600 transition-colors duration-200">
+                                Seguir
+                            </button>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white font-bold">
+                                T
+                            </div>
+                            <div class="ml-3">
+                                <p class="font-medium">Tech</p>
+                                <p class="text-xs text-gray-500">@tech</p>
+                            </div>
+                            <button class="ml-auto bg-primary-500 text-white text-sm py-1 px-3 rounded-full hover:bg-primary-600 transition-colors duration-200">
+                                Seguir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+    
+    <!-- Modal para criar post -->
+    <div id="postModal" class="fixed inset-0 dark-overlay flex items-center justify-center z-50 hidden modal-transition">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 modal-transition transform">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-800">Nova publicação</h3>
+                <button onclick="closePostModal()" class="p-2 rounded-full hover:bg-gray-100 text-gray-700 transition-colors duration-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="border-b border-gray-200 pb-4">
+                <textarea id="content" placeholder="O que está acontecendo?" class="w-full p-3 border-none focus:ring-0 resize-none text-gray-800 text-lg h-32"></textarea>
+                
+                <div id="imagePreviewContainer" class="hidden mt-2">
+                    <div class="relative rounded-xl overflow-hidden">
+                        <img id="imagePreviewImg" class="w-full max-h-60 object-cover" src="">
+                        <button onclick="clearImage()" class="absolute top-2 right-2 bg-black bg-opacity-70 text-white rounded-full p-2 hover:bg-opacity-100 transition-colors duration-200">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-between items-center mt-4">
+                <div class="flex items-center">
+                    <label class="cursor-pointer flex items-center space-x-2 text-primary-500 p-2 rounded-full hover:bg-primary-50 transition-colors duration-200">
+                        <i class="fas fa-image"></i>
+                        <input id="image" type="file" accept="image/*" class="hidden">
+                    </label>
+                    <label class="cursor-pointer flex items-center space-x-2 text-primary-500 p-2 rounded-full hover:bg-primary-50 transition-colors duration-200">
+                        <i class="fas fa-poll"></i>
+                    </label>
+                    <label class="cursor-pointer flex items-center space-x-2 text-primary-500 p-2 rounded-full hover:bg-primary-50 transition-colors duration-200">
+                        <i class="fas fa-smile"></i>
+                    </label>
+                </div>
+                <button onclick="postTweet()" class="bg-primary-500 text-white px-5 py-2 rounded-full font-medium hover:bg-primary-600 transition-colors duration-200 disabled:opacity-50" id="publishButton">
+                    Publicar
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de imagem em tela cheia -->
+    <div id="imageViewerModal" class="fixed inset-0 dark-overlay items-center justify-center z-50 hidden modal-transition">
+        <div class="relative w-full h-full flex items-center justify-center">
+            <button onclick="closeImageViewer()" class="absolute top-4 right-4 text-white p-2 rounded-full bg-black bg-opacity-50 hover:bg-opacity-70 transition-colors duration-200">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <img id="fullSizeImage" class="max-w-full max-h-full object-contain" src="">
+        </div>
+    </div>
+
+    <!-- Botão flutuante para criar post (apenas telas pequenas) -->
+    <div class="fixed bottom-6 right-6 md:hidden z-20">
+        <button onclick="openPostModal()" class="w-14 h-14 rounded-full bg-primary-500 text-white flex items-center justify-center shadow-lg hover:bg-primary-600 transition-colors duration-200">
+            <i class="fas fa-pen"></i>
+        </button>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:8000";
+        let currentUser = null;
+        let currentPage = 1;
+        const postsPerPage = 10;
+        let selectedImage = null;
+        let imageFile = null;
+        
+        // Funções de autenticação
+        function login() {
+            const username = document.getElementById("loginUsername").value;
+            const password = document.getElementById("loginPassword").value;
+            
+            if (!username || !password) {
+                showNotification("Por favor, preencha todos os campos", "error");
+                return;
+            }
+            
+            fetch(`${API_URL}/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    currentUser = data.username;
+                    localStorage.setItem("ufraplus_user", username);
+                    localStorage.setItem("ufraplus_token", data.token);
+                    document.getElementById("authModal").classList.add("hidden");
+                    document.getElementById("currentUser").textContent = currentUser;
+                    document.getElementById("userAvatar").textContent = currentUser.charAt(0).toUpperCase();
+                    loadTimeline();
+                    checkServerStatus();
+                    showNotification("Login realizado com sucesso!", "success");
+                } else {
+                    showNotification("Nome de usuário ou senha incorretos", "error");
+                }
+            })
+            .catch(error => {
+                console.error("Erro no login:", error);
+                showNotification("Erro ao fazer login. Tente novamente.", "error");
+            });
+        }
+
+        function register() {
+            const username = document.getElementById("loginUsername").value;
+            const password = document.getElementById("loginPassword").value;
+            
+            if (!username || !password) {
+                showNotification("Por favor, preencha todos os campos", "error");
+                return;
+            }
+            
+            fetch(`${API_URL}/register`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    showNotification("Cadastro realizado com sucesso! Agora você pode fazer login.", "success");
+                } else {
+                    showNotification(data.detail || "Erro ao cadastrar. Tente outro nome de usuário.", "error");
+                }
+            })
+            .catch(error => {
+                console.error("Erro no cadastro:", error);
+                showNotification("Erro ao cadastrar. Tente novamente.", "error");
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem("ufraplus_user");
+            localStorage.removeItem("ufraplus_token");
+            currentUser = null;
+            document.getElementById("authModal").classList.remove("hidden");
+            document.getElementById("currentUser").textContent = "";
+            showNotification("Você saiu da sua conta", "info");
+        }
+
+        function checkAuth() {
+            const savedUser = localStorage.getItem("ufraplus_user");
+            const token = localStorage.getItem("ufraplus_token");
+            
+            if (savedUser && token) {
+                currentUser = savedUser;
+                document.getElementById("authModal").classList.add("hidden");
+                document.getElementById("currentUser").textContent = currentUser;
+                document.getElementById("userAvatar").textContent = currentUser.charAt(0).toUpperCase();
+                loadTimeline();
+                checkServerStatus();
+            }
+        }
+
+        // Funções do modal de post
+        function openPostModal() {
+            document.getElementById("postModal").classList.remove("hidden");
+            document.getElementById("content").focus();
+            updatePublishButton();
+        }
+
+        function closePostModal() {
+            document.getElementById("postModal").classList.add("hidden");
+        }
+        
+        // Funções para o visualizador de imagem
+        function openImageViewer(imageSrc) {
+            document.getElementById("fullSizeImage").src = imageSrc;
+            document.getElementById("imageViewerModal").classList.remove("hidden");
+        }
+        
+        function closeImageViewer() {
+            document.getElementById("imageViewerModal").classList.add("hidden");
+        }
+
+        // Funções relacionadas aos posts
+        function updatePublishButton() {
+            const content = document.getElementById("content").value.trim();
+            const publishButton = document.getElementById("publishButton");
+            
+            if (content.length > 0 || selectedImage) {
+                publishButton.removeAttribute("disabled");
+            } else {
+                publishButton.setAttribute("disabled", "true");
+            }
+        }
+        
+        function postTweet() {
+            if (!currentUser) {
+                showNotification("Faça login para postar", "error");
+                return;
+            }
+            
+            const content = document.getElementById("content").value;
+            if (!content.trim() && !selectedImage) {
+                showNotification("Adicione algum conteúdo para publicar", "error");
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append("content", content);
+            if (selectedImage) formData.append("image", selectedImage);
+            
+            const token = localStorage.getItem("ufraplus_token");
+            fetch(`${API_URL}/post`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    document.getElementById("content").value = "";
+                    clearImage();
+                    closePostModal();
+                    loadTimeline(true);
+                    showNotification("Publicação criada com sucesso!", "success");
+                } else {
+                    showNotification("Erro ao publicar. Tente novamente.", "error");
+                }
+            })
+            .catch(error => {
+                console.error("Erro ao postar:", error);
+                showNotification("Erro ao publicar. Tente novamente.", "error");
+            });
+        }
+
+        function loadTimeline(refresh = false) {
+            const token = localStorage.getItem("ufraplus_token");
+            
+            if (refresh) {
+                currentPage = 1;
+            }
+            
+            fetch(`${API_URL}/timeline?page=${currentPage}&per_page=${postsPerPage}`, {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const timeline = document.getElementById("timeline");
+                
+                if (currentPage === 1) {
+                    timeline.innerHTML = "";
+                }
+                
+                data.posts.forEach(post => {
+                    const postElement = document.createElement("div");
+                    postElement.className = "bg-white rounded-xl shadow-sm mb-4 overflow-hidden post-transition";
+                    
+                    const postDate = new Date(post.created_at);
+                    const timeAgo = getTimeAgo(postDate);
+                    
+                    postElement.innerHTML = `
+                        <div class="p-4">
+                            <div class="flex items-center mb-3">
+                                <div class="w-12 h-12 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-lg">
+                                    ${post.username.charAt(0).toUpperCase()}
+                                </div>
+                                <div class="ml-3">
+                                    <div class="font-bold text-gray-900">${post.username}</div>
+                                    <div class="text-gray-500 text-sm">${timeAgo}</div>
+                                </div>
+                                <button class="ml-auto text-gray-400 hover:text-gray-600 transition-colors duration-200">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <p class="text-gray-800 whitespace-pre-line">${formatPostContent(post.content)}</p>
+                            </div>
+                            
+                            ${post.image ? 
+                                `<div class="mt-3 mb-2 rounded-xl overflow-hidden cursor-pointer" onclick="openImageViewer('${post.image}')">
+                                    <img src="${post.image}" class="w-full object-cover max-h-96 hover:opacity-95 transition-opacity duration-200">
+                                </div>` 
+                                : ""
+                            }
+                            
+                            <div class="flex justify-between mt-4 pt-3 border-t border-gray-100">
+                                <button onclick="likePost('${post.id}')" class="flex items-center space-x-1 text-gray-500 hover:text-red-500 transition-colors duration-200 like-animation">
+                                    <i class="${post.liked_by_me ? 'fas text-red-500' : 'far'} fa-heart"></i>
+                                    <span>${formatCount(post.likes)}</span>
+                                </button>
+                                <button onclick="toggleCommentForm('${post.id}')" class="flex items-center space-x-1 text-gray-500 hover:text-primary-500 transition-colors duration-200">
+                                    <i class="far fa-comment"></i>
+                                    <span>${formatCount(post.comments.length)}</span>
+                                    </button>
+                                <button class="flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors duration-200">
+                                    <i class="far fa-share-square"></i>
+                                    <span>Compartilhar</span>
+                                </button>
+                                <button class="flex items-center space-x-1 text-gray-500 hover:text-green-500 transition-colors duration-200">
+                                    <i class="far fa-bookmark"></i>
+                                    <span>Salvar</span>
+                                </button>
+                            </div>
+                            
+                            <!-- Formulário de comentário (inicialmente oculto) -->
+                            <div id="commentForm-${post.id}" class="mt-3 pt-3 border-t border-gray-100 hidden">
+                                <div class="flex space-x-2">
+                                    <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold">
+                                        ${currentUser.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div class="flex-1">
+                                        <input type="text" id="commentInput-${post.id}" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 outline-none"
+                                               placeholder="Escreva um comentário...">
+                                    </div>
+                                    <button onclick="addComment('${post.id}')" class="bg-primary-500 text-white px-3 rounded-lg hover:bg-primary-600 transition-colors duration-200">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Lista de comentários -->
+                            <div id="commentsList-${post.id}" class="mt-3 space-y-3 ${post.comments.length > 0 ? '' : 'hidden'}">
+                                ${post.comments.map(comment => `
+                                    <div class="flex space-x-2 animate-fade-in">
+                                        <div class="w-8 h-8 rounded-full bg-primary-400 flex items-center justify-center text-white font-bold">
+                                            ${comment.username.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div class="flex-1 bg-gray-50 p-2 rounded-lg">
+                                            <div class="font-medium text-gray-900">${comment.username}</div>
+                                            <p class="text-gray-700">${comment.text}</p>
+                                            <div class="text-xs text-gray-500 mt-1">${getTimeAgo(new Date(comment.created_at))}</div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    
+                    timeline.appendChild(postElement);
+                });
+                
+                // Atualizar o botão "Carregar mais"
+                const loadMoreButton = document.getElementById("loadMoreButton");
+                if (data.posts.length < postsPerPage) {
+                    loadMoreButton.classList.add("hidden");
+                } else {
+                    loadMoreButton.classList.remove("hidden");
+                }
+            })
+            .catch(error => {
+                console.error("Erro ao carregar posts:", error);
+                showNotification("Erro ao carregar posts", "error");
+            });
+        }
+
+        function loadMorePosts() {
+            currentPage++;
+            loadTimeline();
+        }
+
+        function formatPostContent(content) {
+            // Detectar links
+            let formattedContent = content.replace(
+                /(https?:\/\/[^\s]+)/g, 
+                '<a href="$1" target="_blank" class="text-primary-500 hover:underline">$1</a>'
+            );
+            
+            // Detectar hashtags
+            formattedContent = formattedContent.replace(
+                /#(\w+)/g, 
+                '<a href="#" class="text-primary-500 hover:underline">#$1</a>'
+            );
+            
+            // Detectar menções
+            formattedContent = formattedContent.replace(
+                /@(\w+)/g, 
+                '<a href="#" class="text-primary-500 hover:underline">@$1</a>'
+            );
+            
+            return formattedContent;
+        }
+
+        function formatCount(count) {
+            if (count === 0) return "0";
+            if (count < 1000) return count.toString();
+            if (count < 1000000) return Math.floor(count / 1000) + "K";
+            return Math.floor(count / 1000000) + "M";
+        }
+
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diffSeconds = Math.floor((now - date) / 1000);
+            
+            if (diffSeconds < 60) return "Agora mesmo";
+            if (diffSeconds < 3600) return Math.floor(diffSeconds / 60) + " min";
+            if (diffSeconds < 86400) return Math.floor(diffSeconds / 3600) + " h";
+            if (diffSeconds < 604800) return Math.floor(diffSeconds / 86400) + " d";
+            
+            // Formatar data para datas mais antigas
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        function likePost(postId) {
+            if (!currentUser) {
+                showNotification("Faça login para curtir", "error");
+                return;
+            }
+            
+            const token = localStorage.getItem("ufraplus_token");
+            fetch(`${API_URL}/like`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ post_id: postId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    loadTimeline(true);
+                } else {
+                    showNotification("Erro ao curtir publicação", "error");
+                }
+            })
+            .catch(error => {
+                console.error("Erro ao curtir:", error);
+                showNotification("Erro ao curtir publicação", "error");
+            });
+        }
+
+        function toggleCommentForm(postId) {
+            const commentForm = document.getElementById(`commentForm-${postId}`);
+            if (commentForm.classList.contains("hidden")) {
+                commentForm.classList.remove("hidden");
+                document.getElementById(`commentInput-${postId}`).focus();
+            } else {
+                commentForm.classList.add("hidden");
+            }
+        }
+
+        function addComment(postId) {
+            if (!currentUser) {
+                showNotification("Faça login para comentar", "error");
+                return;
+            }
+            
+            const commentInput = document.getElementById(`commentInput-${postId}`);
+            const comment = commentInput.value.trim();
+            
+            if (!comment) {
+                showNotification("O comentário não pode estar vazio", "error");
+                return;
+            }
+            
+            const token = localStorage.getItem("ufraplus_token");
+            fetch(`${API_URL}/comment`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ post_id: postId, comment: comment })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    commentInput.value = "";
+                    loadTimeline(true);
+                    showNotification("Comentário adicionado", "success");
+                } else {
+                    showNotification("Erro ao adicionar comentário", "error");
+                }
+            })
+            .catch(error => {
+                console.error("Erro ao comentar:", error);
+                showNotification("Erro ao adicionar comentário", "error");
+            });
+        }
+
+        // Manipulação de imagens
+        document.getElementById("image").addEventListener("change", function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            if (!file.type.startsWith("image/")) {
+                showNotification("Por favor, selecione uma imagem", "error");
+                return;
+            }
+            
+            selectedImage = file;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById("imagePreviewImg").src = e.target.result;
+                document.getElementById("imagePreviewContainer").classList.remove("hidden");
+            };
+            reader.readAsDataURL(file);
+            updatePublishButton();
+        });
+
+        function clearImage() {
+            selectedImage = null;
+            document.getElementById("image").value = "";
+            document.getElementById("imagePreviewContainer").classList.add("hidden");
+            updatePublishButton();
+        }
+
+        // Para mostrar notificações
+        function showNotification(message, type = "info") {
+            // Criar elemento de notificação
+            const notification = document.createElement("div");
+            notification.className = `fixed bottom-4 right-4 py-2 px-4 rounded-lg text-white shadow-lg transform transition-all duration-300 z-50 ${
+                type === "success" ? "bg-green-500" :
+                type === "error" ? "bg-red-500" :
+                type === "warning" ? "bg-yellow-500" :
+                "bg-primary-500"
+            }`;
+            
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="mr-2 ${
+                        type === "success" ? "fas fa-check-circle" :
+                        type === "error" ? "fas fa-exclamation-triangle" :
+                        type === "warning" ? "fas fa-exclamation-circle" :
+                        "fas fa-info-circle"
+                    }"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animar entrada
+            setTimeout(() => {
+                notification.style.transform = "translateY(-10px)";
+            }, 100);
+            
+            // Remover após alguns segundos
+            setTimeout(() => {
+                notification.style.opacity = "0";
+                notification.style.transform = "translateY(10px)";
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        // Verificação de status do servidor
+        function checkServerStatus() {
+            fetch(`${API_URL}/status`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("serversCount").textContent = data.servers_count || 1;
+            })
+            .catch(error => {
+                console.error("Erro ao verificar status do servidor:", error);
+                document.getElementById("serversCount").textContent = "0";
+                const networkStatus = document.getElementById("networkStatus");
+                if (networkStatus) {
+                    networkStatus.innerHTML = `
+                        <div class="flex items-center mb-1">
+                            <div class="w-2 h-2 rounded-full bg-red-500 mr-2"></div>
+                            <p class="text-gray-600">Servidores online: <span class="font-medium text-gray-800">0</span></p>
+                        </div>
+                        <p class="text-gray-600">Status: <span class="text-red-500 font-medium">Offline</span></p>
+                    `;
+                }
+            });
+
+            // Verificar a cada 30 segundos
+            setTimeout(checkServerStatus, 30000);
+        }
+
+        // Escutar eventos de formulário
+        document.getElementById("content").addEventListener("input", updatePublishButton);
+        
+        // Inicializar app
+        window.onload = function() {
+            checkAuth();
+            
+            // Adicionar alguns eventos de teclado
+            document.addEventListener("keydown", function(e) {
+                // Fechar modais com ESC
+                if (e.key === "Escape") {
+                    closePostModal();
+                    closeImageViewer();
+                }
+                
+                // Ctrl+Enter para publicar no modal de post
+                if (e.key === "Enter" && e.ctrlKey && !document.getElementById("postModal").classList.contains("hidden")) {
+                    postTweet();
+                }
+            });
+        };
+    </script>
+</body>
+</html>
